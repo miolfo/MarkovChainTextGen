@@ -150,6 +150,9 @@ namespace MarkovChain
 
         private bool mapContainsKey(string[] key)
         {
+            //Since the key is a string[], we can't use ContainsKey() function.
+            //This loop is a performance bottleneck
+            //TODO: Concat keys into string instead of string[]?
             foreach(KeyValuePair<string[], WordBag> pair in transitionMap)
             {
                 if (sameKey(key, pair.Key)) return true;
