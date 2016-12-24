@@ -20,21 +20,16 @@ namespace MarkovChain
         {
             //Split the text into sentences
             string[] sentences = text.Split('.');
-            string[] trimmed = new string[sentences.Length];
-            for(int i = 0; i < sentences.Length; i++)
+            //string[] trimmed = new string[sentences.Length];
+            List<string> trimmedSentences = new List<string>();
+            for (int i = 0; i < sentences.Length; i++)
             {
-                //string sentence = sentences[i].TrimStart(' ');
-                //trimmed[i] = sentence;
                 string sentence = sentences[i];
-                if (sentence.Length > 0 && sentence[0] == ' ')
-                {
-                    sentence = sentence.Remove(0, 1);
-                }
-                trimmed[i] = sentence;
+                string trm = trimSentence(sentence);
+                if (!trm.Equals("")) trimmedSentences.Add(trm);
             }
 
-            //If any empty sentences, remove them
-
+            string[] trimmed = trimmedSentences.ToArray();
 
             for(int i = 0; i < trimmed.Length; i++)
             {
@@ -123,6 +118,12 @@ namespace MarkovChain
             }
         }
 
+        private string trimSentence(string untrimmed)
+        {
+            untrimmed = untrimmed.Trim();
+            return untrimmed;
+        }
+
         private string determineWord(WordBag wb)
         {
             List<string> words = wb.Words;
@@ -164,19 +165,11 @@ namespace MarkovChain
 
         private bool sameKey(string[] k1, string[] k2)
         {
-
             for(int i = 0; i < k1.Length; i++)
             {
-                //TODO: Why error sometimes wtf
-                try
-                {
-                    if (k1[i].ToLower().Equals(k2[i].ToLower())) continue;
-                    else return false;
-                }
-                catch (Exception)
-                {
-                    //Console.WriteLine("asd?");
-                }
+                if (k1[i] == null || k2[i] == null) continue;
+                if (k1[i].ToLower().Equals(k2[i].ToLower())) continue;
+                else return false;
             }
             return true;
         }

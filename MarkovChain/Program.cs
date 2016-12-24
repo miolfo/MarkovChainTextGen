@@ -16,7 +16,7 @@ namespace MarkovChain
 
             for (int i = 0; i < 20; i++)
             {
-                string generated = gen.GenerateSentence(100);
+                string generated = gen.GenerateSentence(15);
                 Console.WriteLine("generated sentence: ");
                 Console.WriteLine(generated);
             }
