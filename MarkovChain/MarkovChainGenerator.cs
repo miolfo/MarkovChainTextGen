@@ -179,13 +179,7 @@ namespace MarkovChain
 
         private bool sameKey(string[] k1, string[] k2)
         {
-            for(int i = 0; i < k1.Length; i++)
-            {
-                if (k1[i] == null || k2[i] == null) continue;
-                if (k1[i].ToLower().Equals(k2[i].ToLower())) continue;
-                else return false;
-            }
-            return true;
+            return k1.SequenceEqual(k2);
         }
     }
 }
