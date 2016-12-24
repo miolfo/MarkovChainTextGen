@@ -57,8 +57,7 @@ namespace MarkovChain
                     }
                     else
                     {
-                        int index = getIndexOfKey(keys);
-                        if (j + 1 < words.Length) transitionMap.ElementAt(index).Value.Add(words[j + 1]);
+                        if (j + 1 < words.Length) addWordToKey(keys, words[j + 1]);
                     }
                 }
             }
@@ -73,29 +72,33 @@ namespace MarkovChain
                 //First, find the ["",""] key to get possible starting words
                 if (i == 0)
                 {
-                    int index = getIndexOfKey(new string[] { "", "" });
-                    if (index == -1) break;
                     string startingWord = "";
-                    //For some reason, empty words still exist
+                    WordBag bag = getWordBagOfKey(new string[] { "", "" });
                     while (startingWord.Equals(""))
                     {
-                        startingWord = determineWord(transitionMap.ElementAt(index).Value);
+                        startingWord = determineWord(bag);
                     }
                     sentence[i] = capitalize(startingWord);
                 }
                 //Else if in second iteration, find a key with ["",sentence[0]] 
                 else if(i == 1)
                 {
-                    int index = getIndexOfKey(new string[] { "", sentence[0] });
-                    string word = determineWord(transitionMap.ElementAt(index).Value);
+                    /*int index = getIndexOfKey(new string[] { "", sentence[0] });
+                    string word = determineWord(transitionMap.ElementAt(index).Value);*/
+                    WordBag bag = getWordBagOfKey(new string[] { "", sentence[0] });
+                    string word = determineWord(bag);
                     sentence[i] = word;
                 }
                 //After first two iterations
                 else
                 {
-                    int index = getIndexOfKey(new string[] { sentence[i - 2], sentence[i - 1] });
+                    /*int index = getIndexOfKey(new string[] { sentence[i - 2], sentence[i - 1] });
                     if (index == -1) break;
                     string word = determineWord(transitionMap.ElementAt(index).Value);
+                    if (!word.Equals("")) sentence[i] = word;*/
+                    WordBag bag = getWordBagOfKey(new string[] { sentence[i - 2], sentence[i - 1] });
+                    if (bag == null) break;
+                    string word = determineWord(bag);
                     if (!word.Equals("")) sentence[i] = word;
                 }
             }
@@ -134,7 +137,7 @@ namespace MarkovChain
                 for (int i = 0; i < occ; i++) accumulatedWords.Add(word);
             }
             if (accumulatedWords.Count == 0) return "";
-            int rndm = r.Next(accumulatedWords.Count - 1);
+            int rndm = r.Next(accumulatedWords.Count);
             return accumulatedWords[rndm];
         }
 
@@ -154,13 +157,21 @@ namespace MarkovChain
             return false;
         }
 
-        private int getIndexOfKey(string[] key)
+        private WordBag getWordBagOfKey(string[] key)
         {
-            for(int i = 0; i < transitionMap.Count; i++)
+            foreach(var pair in transitionMap)
             {
-                if (sameKey(transitionMap.ElementAt(i).Key, key)) return i;
+                if (sameKey(pair.Key, key)) return pair.Value;
             }
-            return -1;
+            return null;
+        }
+
+        private void addWordToKey(string[] key, string word)
+        {
+            foreach(var pair in transitionMap)
+            {
+                if (sameKey(pair.Key, key)) pair.Value.Add(word);
+            }
         }
 
         private bool sameKey(string[] k1, string[] k2)
