@@ -9,10 +9,10 @@ namespace MarkovChain
     class MarkovChainGenerator
     {
         Random r;
-        Dictionary<string[], WordBag> transitionMap;
+        Dictionary<string, WordBag> transitionMap;
         public MarkovChainGenerator()
         {
-            transitionMap = new Dictionary<string[], WordBag>();
+            transitionMap = new Dictionary<string, WordBag>();
             r = new Random();
         }
 
@@ -20,7 +20,6 @@ namespace MarkovChain
         {
             //Split the text into sentences
             string[] sentences = text.Split('.');
-            //string[] trimmed = new string[sentences.Length];
             List<string> trimmedSentences = new List<string>();
             for (int i = 0; i < sentences.Length; i++)
             {
@@ -37,7 +36,6 @@ namespace MarkovChain
                 if (words.Length < 2) continue;
                 for(int j = -1; j < words.Length; j++)
                 {
-                    //if(j == 0) Console.WriteLine(words[0] + "!");
                     string[] keys = new string[2];
                     if(j == -1)
                     {
@@ -49,15 +47,15 @@ namespace MarkovChain
 
                     if(j != -1) keys[1] = words[j];
                     
-                    if (!mapContainsKey(keys))
+                    if (!mapContainsKey(keyArrayToString(keys)))
                     {
                         WordBag wb = new WordBag();
                         if (j + 1 < words.Length) wb.Add(words[j + 1]);
-                        transitionMap.Add(keys, wb);
+                        transitionMap.Add(keyArrayToString(keys), wb);
                     }
                     else
                     {
-                        if (j + 1 < words.Length) addWordToKey(keys, words[j + 1]);
+                        if (j + 1 < words.Length) addWordToKey(keyArrayToString(keys), words[j + 1]);
                     }
                 }
             }
@@ -73,7 +71,7 @@ namespace MarkovChain
                 if (i == 0)
                 {
                     string startingWord = "";
-                    WordBag bag = getWordBagOfKey(new string[] { "", "" });
+                    WordBag bag = getWordBagOfKey(keyArrayToString(new string[] { "", "" }));
                     while (startingWord.Equals(""))
                     {
                         startingWord = determineWord(bag);
@@ -83,20 +81,14 @@ namespace MarkovChain
                 //Else if in second iteration, find a key with ["",sentence[0]] 
                 else if(i == 1)
                 {
-                    /*int index = getIndexOfKey(new string[] { "", sentence[0] });
-                    string word = determineWord(transitionMap.ElementAt(index).Value);*/
-                    WordBag bag = getWordBagOfKey(new string[] { "", sentence[0] });
+                    WordBag bag = getWordBagOfKey(keyArrayToString(new string[] { "", sentence[0] }));
                     string word = determineWord(bag);
                     sentence[i] = word;
                 }
                 //After first two iterations
                 else
                 {
-                    /*int index = getIndexOfKey(new string[] { sentence[i - 2], sentence[i - 1] });
-                    if (index == -1) break;
-                    string word = determineWord(transitionMap.ElementAt(index).Value);
-                    if (!word.Equals("")) sentence[i] = word;*/
-                    WordBag bag = getWordBagOfKey(new string[] { sentence[i - 2], sentence[i - 1] });
+                    WordBag bag = getWordBagOfKey(keyArrayToString(new string[] { sentence[i - 2], sentence[i - 1] }));
                     if (bag == null) break;
                     string word = determineWord(bag);
                     if (!word.Equals("")) sentence[i] = word;
@@ -109,9 +101,10 @@ namespace MarkovChain
 
         public void PrintTransitionMap()
         {
-            foreach(KeyValuePair<string[], WordBag> pair in transitionMap)
+            foreach(KeyValuePair<string, WordBag> pair in transitionMap)
             {
-                Console.Write("[\"" + pair.Key[0] + "\",\"" + pair.Key[1]+"\"] = {");
+                string[] keyArr = keyStringToArray(pair.Key);
+                Console.Write("[\"" + keyArr[0] + "\",\"" + keyArr[1]+"\"] = {");
                 List<string> words = pair.Value.Words;
                 foreach(string s in words)
                 {
@@ -148,38 +141,37 @@ namespace MarkovChain
             return word.First().ToString().ToUpper() + word.Substring(1);
         }
 
-        private bool mapContainsKey(string[] key)
+        private bool mapContainsKey(string key)
         {
-            //Since the key is a string[], we can't use ContainsKey() function.
-            //This loop is a performance bottleneck
-            //TODO: Concat keys into string instead of string[]?
-            foreach(KeyValuePair<string[], WordBag> pair in transitionMap)
-            {
-                if (sameKey(key, pair.Key)) return true;
-            }
-            return false;
+            return transitionMap.ContainsKey(key);
         }
 
-        private WordBag getWordBagOfKey(string[] key)
+        private WordBag getWordBagOfKey(string key)
         {
-            foreach(var pair in transitionMap)
-            {
-                if (sameKey(pair.Key, key)) return pair.Value;
-            }
-            return null;
+            WordBag bag;
+            transitionMap.TryGetValue(key, out bag);
+            return bag;
         }
 
-        private void addWordToKey(string[] key, string word)
+        private void addWordToKey(string key, string word)
         {
-            foreach(var pair in transitionMap)
-            {
-                if (sameKey(pair.Key, key)) pair.Value.Add(word);
-            }
+            getWordBagOfKey(key).Add(word);
         }
 
-        private bool sameKey(string[] k1, string[] k2)
+        private string keyArrayToString(string[] key)
         {
-            return k1.SequenceEqual(k2);
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < key.Length; i++)
+            {
+                sb.Append(key[i]);
+                if (i != key.Length - 1) sb.Append(';'); 
+            }
+            return sb.ToString();
+        }
+
+        private string[] keyStringToArray(string key)
+        {
+            return key.Split(';');
         }
     }
 }
